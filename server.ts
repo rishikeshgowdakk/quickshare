@@ -19,7 +19,7 @@ async function startServer() {
 
   const PORT = 3000;
 
-  // Socket.IO for real-time ephemeral events (like typing)
+  // Socket.IO for real-time ephemeral event
   io.on("connection", (socket) => {
     socket.on("join-room", (roomId) => {
       socket.join(roomId);
