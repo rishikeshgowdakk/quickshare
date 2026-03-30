@@ -29,3 +29,13 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #e5e5e5;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

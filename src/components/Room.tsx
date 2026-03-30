@@ -17,6 +17,7 @@ export default function Room() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [copying, setCopying] = useState(false);
+  const [copyingText, setCopyingText] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -144,109 +145,128 @@ export default function Room() {
     setTimeout(() => setCopying(false), 2000);
   };
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(text);
+    setCopyingText(true);
+    setTimeout(() => setCopyingText(false), 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-black font-sans p-4 md:p-8">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-8">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-sm font-medium hover:text-blue-600 transition-colors">
-            <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center group-hover:border-blue-200 group-hover:bg-blue-50 transition-all">
-              <ArrowLeft className="w-4 h-4" />
-            </div>
-            Back to Home
-          </button>
-          <div className="h-4 w-[1px] bg-gray-200" />
-          <h1 className="text-xl font-black tracking-tight">Mono <span className="text-blue-600">/{roomId}</span></h1>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {error && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-mono uppercase tracking-widest border border-red-100">
-              <AlertCircle className="w-3 h-3" /> {error}
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-100/50 font-sans p-2 sm:p-4 md:p-8 flex flex-col items-center">
+      <div className="w-full max-w-5xl bg-white rounded-[32px] md:rounded-[48px] shadow-2xl shadow-gray-200/50 border border-white p-4 md:p-10 flex flex-col min-h-[calc(100vh-16px)] sm:min-h-[calc(100vh-32px)] md:min-h-[calc(100vh-64px)]">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center justify-between md:justify-start gap-4 md:gap-6 w-full md:w-auto">
+            <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-sm font-medium hover:text-blue-600 transition-colors shrink-0">
+              <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center group-hover:border-blue-200 group-hover:bg-blue-50 transition-all">
+                <ArrowLeft className="w-4 h-4" />
+              </div>
+              <span className="hidden sm:inline">Back to Home</span>
+            </button>
+            <div className="hidden md:block h-4 w-[1px] bg-gray-200" />
+            <h1 className="text-lg md:text-xl font-black tracking-tight truncate">
+              Mono <span className="text-blue-600">/{roomId}</span>
+            </h1>
+          </div>
           
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-            {isSaving ? (
-              <span className="text-[10px] font-mono uppercase text-blue-500 flex items-center gap-1.5">
-                <Loader2 className="w-3 h-3 animate-spin" /> Saving...
-              </span>
-            ) : lastSaved ? (
-              <span className="text-[10px] font-mono uppercase text-green-600 flex items-center gap-1.5">
-                <Check className="w-3 h-3" /> Saved
-              </span>
-            ) : (
-              <span className="text-[10px] font-mono uppercase text-gray-400 flex items-center gap-1.5">
-                <RefreshCcw className="w-3 h-3" /> Auto-syncing
-              </span>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar w-full md:w-auto justify-end">
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-mono uppercase tracking-widest border border-red-100 shrink-0">
+                <AlertCircle className="w-3 h-3" /> {error}
+              </div>
             )}
-          </div>
-
-          <button 
-            onClick={manualSave} 
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-black rounded-lg transition-all text-xs font-bold uppercase tracking-widest shadow-sm active:scale-95"
-            title="Save Now"
-          >
-            <Save className="w-4 h-4" />
-            Save
-          </button>
-          
-          <button 
-            onClick={copyLink} 
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-black rounded-lg transition-all text-xs font-bold uppercase tracking-widest shadow-sm active:scale-95"
-            title="Copy Room Code"
-          >
-            {copying ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-            {copying ? 'Copied' : 'Share'}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-180px)]">
-        {/* Editor Side */}
-        <div className="lg:col-span-8 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Live Editor</span>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm shrink-0">
+              {isSaving ? (
+                <span className="text-[10px] font-mono uppercase text-blue-500 flex items-center gap-1.5">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+                </span>
+              ) : lastSaved ? (
+                <span className="text-[10px] font-mono uppercase text-green-600 flex items-center gap-1.5">
+                  <Check className="w-3 h-3" /> Saved
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono uppercase text-gray-400 flex items-center gap-1.5">
+                  <RefreshCcw className="w-3 h-3" /> Auto-syncing
+                </span>
+              )}
             </div>
+
             <button 
-              onClick={clearText}
-              className="flex items-center gap-2 px-3 py-1.5 hover:bg-red-50 text-red-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors"
+              onClick={manualSave} 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-black rounded-lg transition-all text-xs font-bold uppercase tracking-widest shadow-sm active:scale-95 shrink-0"
+              title="Save Now"
             >
-              <Trash2 className="w-3 h-3" />
-              Clear Pad
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Save</span>
             </button>
-          </div>
-          
-          <div className="flex-grow p-8 relative">
-            <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={handleTextChange}
-              placeholder="Start typing anything here... it saves automatically."
-              className="w-full h-full text-lg leading-relaxed outline-none resize-none placeholder:text-gray-200 font-medium text-gray-800"
-              spellCheck={false}
-            />
+            
+            <button 
+              onClick={copyLink} 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-black rounded-lg transition-all text-xs font-bold uppercase tracking-widest shadow-sm active:scale-95 shrink-0"
+              title="Copy Room Code"
+            >
+              {copying ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              <span className="hidden sm:inline">{copying ? 'Copied' : 'Share'}</span>
+            </button>
           </div>
         </div>
 
-        {/* Feed Side */}
-        <div className="lg:col-span-4 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Shared Files & Items</span>
-            <button 
-              onClick={() => setShowUploader(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              Upload
-            </button>
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+          {/* Editor Side */}
+          <div className="lg:col-span-8 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Live Editor</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  {copyingText ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copyingText ? 'Copied' : 'Copy Text'}
+                </button>
+                <button 
+                  onClick={clearText}
+                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-red-50 text-red-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Clear Pad
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-grow p-8 relative">
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={handleTextChange}
+                placeholder="Start typing anything here... it saves automatically."
+                className="w-full h-full text-lg leading-relaxed outline-none resize-none placeholder:text-gray-200 font-medium text-gray-800"
+                spellCheck={false}
+              />
+            </div>
           </div>
-          
-          <div className="flex-grow overflow-y-auto p-6 bg-gray-50/50">
-            <Feed roomId={roomId!} />
+
+          {/* Feed Side */}
+          <div className="lg:col-span-4 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Shared Files & Items</span>
+              <button 
+                onClick={() => setShowUploader(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                Upload
+              </button>
+            </div>
+            
+            <div className="flex-grow overflow-y-auto p-6 bg-gray-50/50">
+              <Feed roomId={roomId!} />
+            </div>
           </div>
         </div>
       </div>

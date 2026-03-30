@@ -268,6 +268,8 @@ export default function Feed({ roomId }: { roomId: string }) {
                       <a 
                         href={item.content} 
                         download={item.fileName}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-blue-600 flex items-center gap-1.5 transition-colors"
                       >
                         <Download className="w-3 h-3" />
