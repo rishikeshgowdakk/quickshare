@@ -22,6 +22,7 @@ export default function Room() {
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const textRef = useRef(text);
 
   // Keep ref in sync for beforeunload
@@ -91,6 +92,22 @@ export default function Room() {
     return () => unsubscribe();
   }, [roomId]);
 
+  const updateActivity = async () => {
+    if (!roomId) return;
+    try {
+      await setDoc(doc(db, 'rooms', roomId), {
+        lastActivity: serverTimestamp(),
+      }, { merge: true });
+    } catch (err) {
+      console.error('Error updating activity:', err);
+    }
+  };
+
+  const triggerActivityUpdate = () => {
+    if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
+    activityTimeoutRef.current = setTimeout(updateActivity, 2000);
+  };
+
   const saveToCloud = async (newText: string) => {
     if (!roomId) return;
     setIsSaving(true);
@@ -116,11 +133,10 @@ export default function Room() {
     socket.emit('text-update', { roomId, text: newText });
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => saveToCloud(newText), 1000); // Reduced to 1s
+    saveTimeoutRef.current = setTimeout(() => saveToCloud(newText), 1000);
   };
 
   const clearText = async () => {
-    if (!window.confirm('Clear all text in this room?')) return;
     try {
       await setDoc(doc(db, 'rooms', roomId!), { 
         text: '', 
@@ -152,8 +168,8 @@ export default function Room() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100/50 font-sans p-2 sm:p-4 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-5xl bg-white rounded-[32px] md:rounded-[48px] shadow-2xl shadow-gray-200/50 border border-white p-4 md:p-10 flex flex-col min-h-[calc(100vh-16px)] sm:min-h-[calc(100vh-32px)] md:min-h-[calc(100vh-64px)]">
+    <div className="min-h-screen bg-gray-100/50 font-sans p-2 sm:p-4 md:p-6 flex flex-col items-center">
+      <div className="w-full max-w-[1600px] bg-white rounded-[32px] md:rounded-[40px] shadow-2xl shadow-gray-200/50 border border-white p-4 md:p-8 flex flex-col min-h-[calc(100vh-16px)] sm:min-h-[calc(100vh-32px)] md:min-h-[calc(100vh-48px)]">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center justify-between md:justify-start gap-4 md:gap-6 w-full md:w-auto">
@@ -215,7 +231,7 @@ export default function Room() {
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
           {/* Editor Side */}
-          <div className="lg:col-span-8 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
+          <div className="lg:col-span-7 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -252,7 +268,7 @@ export default function Room() {
           </div>
 
           {/* Feed Side */}
-          <div className="lg:col-span-4 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
+          <div className="lg:col-span-5 flex flex-col bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden min-h-[400px] lg:min-h-0">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
               <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Shared Files & Items</span>
               <button 
@@ -265,7 +281,7 @@ export default function Room() {
             </div>
             
             <div className="flex-grow overflow-y-auto p-6 bg-gray-50/50">
-              <Feed roomId={roomId!} />
+              <Feed roomId={roomId!} onActivity={triggerActivityUpdate} />
             </div>
           </div>
         </div>
@@ -298,7 +314,11 @@ export default function Room() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <FileUpload roomId={roomId!} onComplete={() => setShowUploader(false)} />
+              <FileUpload 
+                roomId={roomId!} 
+                onComplete={() => setShowUploader(false)} 
+                onUpload={triggerActivityUpdate}
+              />
             </motion.div>
           </motion.div>
         )}

@@ -8,7 +8,7 @@ import { cn } from '../lib/utils';
 
 const MAX_FILE_SIZE = 700 * 1024 * 1024; // 700MB
 
-export default function FileUpload({ roomId, onComplete }: { roomId: string, onComplete: () => void }) {
+export default function FileUpload({ roomId, onComplete, onUpload }: { roomId: string, onComplete: () => void, onUpload?: () => void }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -89,6 +89,7 @@ export default function FileUpload({ roomId, onComplete }: { roomId: string, onC
 
       await Promise.all(uploadPromises);
       
+      onUpload?.();
       setSuccess(true);
       setTimeout(() => {
         setUploading(false);

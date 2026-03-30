@@ -16,7 +16,7 @@ interface FeedItem {
   createdAt: any;
 }
 
-export default function Feed({ roomId }: { roomId: string }) {
+export default function Feed({ roomId, onActivity }: { roomId: string, onActivity?: () => void }) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,9 +44,9 @@ export default function Feed({ roomId }: { roomId: string }) {
   }, [roomId]);
 
   const deleteItem = async (item: FeedItem) => {
-    if (!window.confirm('Delete this item?')) return;
     try {
       await deleteDoc(doc(db, 'rooms', roomId, 'feed', item.id));
+      onActivity?.();
       if (item.type === 'file' && item.content) {
         try {
           const fileRef = ref(storage, item.content);
@@ -76,11 +76,13 @@ export default function Feed({ roomId }: { roomId: string }) {
         await updateDoc(doc(db, 'rooms', roomId, 'feed', item.id), {
           content: editContent.trim()
         });
+        onActivity?.();
       } else {
         if (!editFileName.trim()) return;
         await updateDoc(doc(db, 'rooms', roomId, 'feed', item.id), {
           fileName: editFileName.trim()
         });
+        onActivity?.();
       }
       setEditingId(null);
     } catch (err) {
@@ -260,6 +262,7 @@ export default function Feed({ roomId }: { roomId: string }) {
                         href={item.content} 
                         target="_blank" 
                         rel="noopener noreferrer"
+                        onClick={() => onActivity?.()}
                         className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-blue-600 flex items-center gap-1.5 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
@@ -270,6 +273,7 @@ export default function Feed({ roomId }: { roomId: string }) {
                         download={item.fileName}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => onActivity?.()}
                         className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-blue-600 flex items-center gap-1.5 transition-colors"
                       >
                         <Download className="w-3 h-3" />
