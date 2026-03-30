@@ -1,4 +1,4 @@
-# QuickShare
+# Mono
 
 A real-time, room-based sharing workspace for text and files.
 

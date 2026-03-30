@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Room from './components/Room';
@@ -33,7 +28,7 @@ function Landing() {
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-200 rotate-3 hover:rotate-0 transition-transform duration-500">
             <Share2 className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 mb-2">QuickShare</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 mb-2">Mono</h1>
           <p className="text-gray-400 text-sm font-medium">Real-time collaborative pad. No login required.</p>
         </div>
 

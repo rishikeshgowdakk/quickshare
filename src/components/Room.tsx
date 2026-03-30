@@ -156,7 +156,7 @@ export default function Room() {
             Back to Home
           </button>
           <div className="h-4 w-[1px] bg-gray-200" />
-          <h1 className="text-xl font-bold tracking-tight">Room: <span className="text-blue-600">{roomId}</span></h1>
+          <h1 className="text-xl font-black tracking-tight">Mono <span className="text-blue-600">/{roomId}</span></h1>
         </div>
         
         <div className="flex items-center gap-3">
